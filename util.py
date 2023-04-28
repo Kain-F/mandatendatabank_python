@@ -6,13 +6,21 @@ import urllib.request
 import numpy as np
 
 class Mandaten():
+	"""
+	klasse voor te gaan query'en in de publiek toegankelijke endpoint van lblod met behulp van sparql
+	"""
 	sparql = sp.SPARQLWrapper(endpoint='https://centrale-vindplaats.lblod.info/sparql')
 	sparql.setReturnFormat(sp.JSON)
 
 	def bestuursorganen(self):
+		"""
+		hiermee halen we alle bestuursorganen op die deel uitmaken van de gemeente,OCMW,Provincie of District
+		:return: lijst van alle bestuursorganen
+		"""
 		start = datetime.datetime.now()
 		print(f'gestart met bestuursorganen op te vragen\nstart: {start}')
-		self.sparql.setReturnFormat(sp.JSON)
+
+		# we schrijven onze query
 		self.sparql.setQuery("""
 		PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 		PREFIX fo: <http://www.w3.org/1999/XSL/Format#>
@@ -37,12 +45,21 @@ class Mandaten():
 					?bestuursorgaanClassificatie skos:prefLabel ?bestuursorgaanClassificatieLabel .
 		     }
 			order by ?bestuursorgaanClassificatieLabel""")
+
+		# we zetten de json om naar een nested dictionary en hieruit gaan we enkel de relevante gegevens halen
 		result = self.sparql.query().convert()
 		bestuursorganen_ugly = pd.DataFrame.from_dict(result['results']['bindings'])
+
+		# uiteindelijk halen we met itemgetter uit elke dictionary in elke rij voor elke kolom de effectieve waarde
 		bestuursorganen = bestuursorganen_ugly.applymap(operator.itemgetter('value'))
+		print(type(bestuursorganen))
+
+		# aangezien het hier maar gaat over een dataframe met 1 kolom zullen we deze transformeren naar een lijst
 		lst = bestuursorganen.squeeze()
+
 		stop = datetime.datetime.now()
 		print(f'bestuursorganen opgehaald\nstop: {stop}\nruntime: {stop-start} seconden\n{bestuursorganen}')
+
 		return lst
 
 	def query(self):
@@ -138,15 +155,7 @@ class Mandaten():
 
 if __name__ == '__main__':
 	mandatendatabank = Mandaten()
-	#bestuursorganen = mandatendatabank.bestuursorganen()
 	test = mandatendatabank.query()
 	test.to_csv(f'loop_query_{datetime.date.today()}.csv')
-	print(test['bestuursorgaanClassificatieLabel'].info())
-	#BCSD = mandatendatabank.query_BCSCD
-	#GR = mandatendatabank.query_GR
-	#Burgemeester = mandatendatabank.query_burgemeester
-	#CBS = mandatendatabank.query_CBS
-	#result = pd.concat([BCSD,GR,Burgemeester,CBS])
-	#result.to_csv(f'probeersel_mandatendatabank_{datetime.date.today()}.csv')
 
-	probeersel = mandatendatabank.query(bestuursorgaan='Bijzonder Comité voor de Sociale Dienst')
+
