@@ -2,8 +2,6 @@ import operator
 import SPARQLWrapper as sp
 import datetime
 import pandas as pd
-import urllib.request
-import numpy as np
 
 class Mandaten():
 	"""
@@ -67,11 +65,15 @@ class Mandaten():
 		hiermee query'en we de publiek toegankelijke centrale endpoint naar de transactionele gegevens van de mandatendatabank
 		:return: dataframe met daarin alle transactionele gegevens van de mandatendatabank voor de politieke bestuursorganen
 		"""
+
 		start_query = datetime.datetime.now()
+
 		# we query'en de aanwezige bestuursorganen
 		bestuursorganen = self.bestuursorganen()
+
 		# we maken onze lege lijst die we gaan vullen met dataframes van onze query's en die zullen we uiteindelijk transformeren naar een geconcateneerde dataframe
 		lst = []
+
 		for bestuursorgaan in bestuursorganen:
 			print(f'gestart aan {bestuursorgaan}')
 			start = datetime.datetime.now()
@@ -157,5 +159,3 @@ if __name__ == '__main__':
 	mandatendatabank = Mandaten()
 	test = mandatendatabank.query()
 	test.to_csv(f'loop_query_{datetime.date.today()}.csv')
-
-
